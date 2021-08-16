@@ -5,6 +5,14 @@ import json
 from ludopedia_wrapper.Connection import Connection
 
 
+def _headers(conexao):
+    headers = {
+            "Content-type": "aplication-json",
+            "Authorization": f"Bearer {conexao.ACCESS_TOKEN}"
+        }
+    return headers
+
+
 def fetch_all_games(conexao):
     collection = get_collection(conexao)
     total_pages = ceil(collection["total"]/20)
@@ -17,10 +25,7 @@ def fetch_all_games(conexao):
 
 def get_collection(conexao, pg=1):
     url = f"https://ludopedia.com.br/api/v1/colecao?lista=colecao&page={pg}"
-    headers = {
-        "Content-type": "aplication-json",
-        "Authorization": f"Bearer {conexao.ACCESS_TOKEN}"
-    }
+    headers = _headers(conexao)
     response = requests.get(url, headers=headers)
     return json.loads(response.text)
 

@@ -16,7 +16,6 @@ TIME_FORMAT = "%y-%m-%d"
 
 class MissingConfigError(Exception):
     """Exception raised for missing config field.
-
     Attributes:
         message
     """
@@ -50,7 +49,7 @@ class Connection:
                 conf_dict = json.load(conf)
                 for k, v in conf_dict.items():
                     setattr(self, k, v)
-            # valida os parâmetros na API
+            # valida os parâmetros na API, verifica se todos os atributos necessários existem
             self.validate_config()
         except Exception as e:
             error = f"{ERROR_COLOR}Error:{END_COLOR} Could not load config file on path {conf_file}."
@@ -96,6 +95,7 @@ class Connection:
                         pickle.HIGHEST_PROTOCOL)
 
     def validate_config(self):
+        """ Valida se os atributos necessários para conexão foram criados. """
         errors = []
         attrs = self.config_required_attrs
         for attr in attrs:
