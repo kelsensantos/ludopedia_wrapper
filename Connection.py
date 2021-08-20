@@ -25,12 +25,12 @@ class MissingConfigError(Exception):
         super().__init__(self.message)
 
 
-# noinspection PyBroadException
+# noinspection PyBroadException,PyAttributeOutsideInit
 class Connection:
     """ This class connects to Ludopedia's API."""
 
     # noinspection PyBroadException
-    def __init__(self, conf_file=config('APP_CONF_PATH')) -> None:
+    def __init__(self, conf_file=config('APP_CONF_PATH', default='app_conf.json')) -> None:
         self.config_required_attrs = ['APP_ID', 'APP_KEY', 'ACCESS_TOKEN', "CODE_URL"]
         self.load_conf(conf_file)
         try:
@@ -42,7 +42,7 @@ class Connection:
             error = f"{ERROR_COLOR}Error:{END_COLOR} Token not existing or expired. Please run connect method"
             print(error, file=sys.stderr)
 
-    def load_conf(self, conf_file=config('APP_CONF_PATH')):
+    def load_conf(self, conf_file=config('APP_CONF_PATH', default='app_conf.json')):
         try:
             # obtém parâmetros a partir de json
             with open(conf_file) as conf:
@@ -89,6 +89,7 @@ class Connection:
             self.token_reg_date = datetime.strptime(access_info['token_reg_date'], TIME_FORMAT)
             return self.access_token, self.token_reg_date
 
+    # noinspection PyMethodMayBeStatic
     def save_token(self, access_token):
         with open('data.pickle', 'wb') as f:
             pickle.dump({"token": access_token, "token_reg_date": datetime.now().strftime(TIME_FORMAT)}, f,

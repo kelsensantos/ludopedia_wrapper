@@ -1,15 +1,15 @@
-from math import ceil
 import requests
 import json
-# from requests.api import get
+from math import ceil
+from decouple import config
 from Connection import Connection
 
 
 class Ludopedia:
     """ Consome os métodos da API da Ludopedia. """
 
-    def __init__(self, conn=Connection()):
-        self.conexao = conn
+    def __init__(self, conf_file=config('APP_CONF_PATH', default='app_conf.json')):
+        self.conexao = Connection(conf_file=conf_file)
         self.headers = {
                 "Content-type": "aplication-json",
                 "Authorization": f"Bearer {self.conexao.ACCESS_TOKEN}"

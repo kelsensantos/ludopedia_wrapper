@@ -2,7 +2,7 @@ from math import ceil
 import requests
 import json
 # from requests.api import get
-from ludopedia_wrapper.Connection import Connection
+from Connection import Connection
 
 
 def _headers(conexao):
