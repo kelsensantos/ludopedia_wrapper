@@ -46,26 +46,28 @@ class Ludopedia:
         response = self._request_json(url)
         return response
 
-    def buscar_colecao(self, todos=True, lista='colecao', ordem='nome', pg=1, rows=100, **kwargs):
+    def buscar_colecao(self, todos=True, lista='colecao', ordem='nome', page=1, rows=100, **kwargs):
         """ Método para consumir do endpoint "colecao". """
+        if todos and page != 1:
+            print('Só possível retornar todos a partir da primeira página. Se for o caso, corriga o parâmetro.')
         url = 'https://ludopedia.com.br/api/v1/colecao'
         url = Ludopedia._mount_url(
             url,
             lista=lista,
             rows=rows,
             ordem=ordem,
-            pg=pg,
+            page=page,
             **kwargs
         )
         print(f'Obtendo dados de {url} ...')
         response = self._request_json(url)
         # implementa atributo para buscar todos os jogos (default: true)
-        if todos and pg == 1:
+        if todos and page == 1:
             total_de_paginas = ceil(response["total"] / rows)
             jogos = response["colecao"]
             print(f'Total de páginas: {total_de_paginas}')
             for page in range(2, total_de_paginas + 1):
-                proxima_pagina = self.buscar_colecao(pg=page)
+                proxima_pagina = self.buscar_colecao(page=page)
                 jogos += proxima_pagina["colecao"]
             response = jogos
         return response
