@@ -14,6 +14,7 @@ class Ludopedia:
                 "Content-type": "aplication-json",
                 "Authorization": f"Bearer {self.conexao.ACCESS_TOKEN}"
             }
+        self.base_url = 'https://ludopedia.com.br/api/v1'
 
     def _request_json(self, url):
         """ Realiza consulta e obtém resposta em formato json. """
@@ -21,28 +22,27 @@ class Ludopedia:
         response_json = json.loads(response.text)
         return response_json
 
-    @staticmethod
-    def _mount_url(url, first=True, **kwargs):
+    def _mount_url(self, url, first_parameter=True, **kwargs):
         """ Monta a URL para requisição a partir de dicinário com parâmetros.
         Todos os parâmetros precisam ser informados a partir do inicial,
         ou seja, a url de entrada não poder conter outros patrâmetros pré-definidos. """
-        mounted_url = url
+        mounted_url = self.base_url + url
         for item in kwargs.keys():
             complemento = kwargs.get(item)
-            if first:
+            if first_parameter:
                 mounted_url = mounted_url + '?' + str(item) + '=' + str(complemento)
             else:
                 mounted_url = mounted_url + '&' + str(item) + '=' + str(complemento)
-            first = False
+            first_parameter = False
         return mounted_url
 
     @staticmethod
     def _modelar_kwargs(**kwargs):
         return kwargs
 
-    def get_endpoint(self, url, **kwargs):
+    def get_endpoint(self, endpoint, **kwargs):
         """ Método genérico para consumir de qualquer endpoint via get. """
-        url = Ludopedia._mount_url(url, **kwargs)
+        url = self._mount_url(endpoint, **kwargs)
         response = self._request_json(url)
         return response
 
@@ -50,8 +50,8 @@ class Ludopedia:
         """ Método para consumir do endpoint "colecao". """
         if todos and page != 1:
             print('Só possível retornar todos a partir da primeira página. Se for o caso, corriga o parâmetro.')
-        url = 'https://ludopedia.com.br/api/v1/colecao'
-        url = Ludopedia._mount_url(
+        url = '/colecao'
+        url = self._mount_url(
             url,
             lista=lista,
             rows=rows,
@@ -70,4 +70,27 @@ class Ludopedia:
                 proxima_pagina = self.buscar_colecao(page=page)
                 jogos += proxima_pagina["colecao"]
             response = jogos
+        # acrescenta coluna base_game (true/false)
+
+        return response
+
+    def buscar_jogo_na_colecao(self, id_jogo, retornar_somente_tags=False):
+        """ Retorna a relação do usuário com o jogo (Nota, Comentario, coleção, etc). """
+        endpoint = f'/colecao/item/{id_jogo}'
+        url = self._mount_url(endpoint)
+        print(f'Obtendo dados de {url} ...')
+        response = self._request_json(url)
+        if retornar_somente_tags:
+            tags_list = []
+            for tag in response['tags']:
+                tags_list.append(tag['nm_tag'])
+            return tags_list
+        return response
+
+    def buscar_jogo_detalhes(self, id_jogo):
+        """ Busca os detalhes de um jogo, consumindo o endpoint /jogos/id_jogo. """
+        endpoint = f'/jogos/{id_jogo}'
+        url = self._mount_url(endpoint)
+        print(f'Obtendo dados de {url} ...')
+        response = self._request_json(url)
         return response
