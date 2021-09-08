@@ -102,6 +102,7 @@ class Ludopedia:
 
     # noinspection PyTypeChecker
     def atualizar_jogo_na_colecao(self, id_jogo, **kwargs):
+        """ Atualiza os dados de determinado jogo na coleção. Executa POST no endpoint /colecao. """
         # define endpoint
         endpoint = '/colecao'
         # busca dados atuais do jogo
