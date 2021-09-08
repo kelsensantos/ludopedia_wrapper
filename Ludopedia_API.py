@@ -22,11 +22,11 @@ class Ludopedia:
         response_json = json.loads(response.text)
         return response_json
 
-    def _mount_url(self, url, first_parameter=True, **kwargs):
+    def _mount_url(self, endpoint, first_parameter=True, **kwargs):
         """ Monta a URL para requisição a partir de dicinário com parâmetros.
         Todos os parâmetros precisam ser informados a partir do inicial,
         ou seja, a url de entrada não poder conter outros patrâmetros pré-definidos. """
-        mounted_url = self.base_url + url
+        mounted_url = self.base_url + endpoint
         for item in kwargs.keys():
             complemento = kwargs.get(item)
             if first_parameter:
@@ -46,13 +46,19 @@ class Ludopedia:
         response = self._request_json(url)
         return response
 
+    def post_endpoint(self, endpoint, payload):
+        """ Método genérico para consumir de qualquer endpoint via get. """
+        url = self.base_url + endpoint
+        response = requests.post(url, data=payload, headers=self.headers)
+        return response
+
     def buscar_colecao(self, todos=True, lista='colecao', ordem='nome', page=1, rows=100, **kwargs):
         """ Método para consumir do endpoint "colecao". """
         if todos and page != 1:
             print('Só possível retornar todos a partir da primeira página. Se for o caso, corriga o parâmetro.')
-        url = '/colecao'
+        endpoint = '/colecao'
         url = self._mount_url(
-            url,
+            endpoint=endpoint,
             lista=lista,
             rows=rows,
             ordem=ordem,
@@ -71,7 +77,6 @@ class Ludopedia:
                 jogos += proxima_pagina["colecao"]
             response = jogos
         # acrescenta coluna base_game (true/false)
-
         return response
 
     def buscar_jogo_na_colecao(self, id_jogo, retornar_somente_tags=False):
@@ -94,3 +99,26 @@ class Ludopedia:
         print(f'Obtendo dados de {url} ...')
         response = self._request_json(url)
         return response
+
+    # noinspection PyTypeChecker
+    def atualizar_jogo_na_colecao(self, id_jogo, **kwargs):
+        # define endpoint
+        endpoint = '/colecao'
+        # busca dados atuais do jogo
+        dados = self.buscar_jogo_na_colecao(id_jogo)
+        # lista de chaves exigidas pela API
+        keys = ['id_jogo', 'fl_tem', 'fl_quer', 'fl_teve', 'fl_jogou', 'comentario', 'comentario_privado', 'vl_nota',
+                'vl_custo', 'tags']
+        # altera dados
+        for kwarg in kwargs:
+            if kwarg not in keys:
+                return f'Parâmetro {kwarg} não existe. Por favor, corrija.'
+            else:
+                dados[kwarg] = kwargs[kwarg]
+        # filtra dicionário para selecionar chaves exigidas pela API
+        payload = {key: dados[key] for key in keys}
+        # realiza requisição
+        r = self.post_endpoint(endpoint, json.dumps(payload))
+        # debug
+        print(f"Alterando dados de {dados['nm_jogo']}...")
+        return r
